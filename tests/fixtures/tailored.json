@@ -1,0 +1,86 @@
+{
+  "name": "Sample Candidate",
+  "headline": "Frontend Developer | React.js | TypeScript | Test Automation",
+  "email": "candidate@example.com",
+  "phone": "+49 111 11111111",
+  "location": "Berlin, Germany",
+  "relocation": "Open to relocation across Germany",
+  "linkedin": "linkedin.com/in/sample-candidate",
+  "github": "github.com/sample-candidate",
+  "portfolio": "sample.dev",
+  "summary": "Frontend Developer building production **React.js and TypeScript** applications with data-intensive interfaces, REST and GraphQL integrations, and automated testing with Vitest and Playwright. Works closely with product, backend and QA teams in iterative delivery cycles.",
+  "skills": [
+    {
+      "label": "Core Frontend",
+      "items": "React.js, TypeScript, JavaScript, HTML5, CSS3/SCSS, Material UI, Responsive Design, Accessibility (WCAG)"
+    },
+    {
+      "label": "Testing & Tooling",
+      "items": "Vitest, Playwright, Jest, React Testing Library, Git, Vite, CI/CD"
+    },
+    {
+      "label": "State, Forms & Data",
+      "items": "TanStack Query, React Hook Form, REST APIs, GraphQL, Axios, i18n"
+    },
+    {
+      "label": "Working Style",
+      "items": "Analytical Thinking, Problem Solving, Cross-Team Collaboration, Quick Learner"
+    }
+  ],
+  "jobs": [
+    {
+      "title": "Senior Frontend Developer",
+      "org": "Example Software GmbH",
+      "dates": "January 2024 - Present",
+      "location": "Berlin, Germany",
+      "bullets": [
+        {
+          "text": "Owned end-to-end frontend delivery of a core React and TypeScript workflow from design through API integration, automated testing and release.",
+          "hidden": false
+        },
+        {
+          "text": "Created reusable UI components and integrated REST APIs with automated tests using Vitest and Playwright.",
+          "hidden": false
+        },
+        {
+          "text": "Worked with product, backend and QA colleagues in iterative release cycles and documented shared implementation patterns.",
+          "hidden": false
+        },
+        {
+          "text": "Created storyboards and short demo videos to explain user workflows and product features to developers and customers.",
+          "hidden": false
+        }
+      ]
+    },
+    {
+      "title": "Software Engineer - Frontend",
+      "org": "Example Technology Ltd.",
+      "dates": "January 2022 - December 2023",
+      "location": "Germany",
+      "bullets": [
+        {
+          "text": "Developed responsive data-heavy interfaces and reusable frontend components, reducing repetitive implementation effort by 40%.",
+          "hidden": false
+        },
+        {
+          "text": "Improved maintainability through component refactoring, automated testing and documentation — passionate about teamwork → results.",
+          "hidden": false
+        }
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "MSc Computer Science",
+      "org": "Different University",
+      "dates": "2022 - 2024",
+      "location": "Germany",
+      "details": "Final grade: 1.5"
+    }
+  ],
+  "extras": [
+    { "label": "English", "text": "C1" },
+    { "label": "German", "text": "Advanced" },
+    { "label": "Work Authorisation", "text": "Authorised to work in Germany" }
+  ]
+}

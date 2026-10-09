@@ -1,0 +1,27 @@
+# Dependencies and build artifacts
+node_modules/
+dist/
+coverage/
+
+# Local environment / secrets
+.env
+.env.*
+!.env.example
+
+# Private resume data loaded only on the developer machine
+src/data/defaultResume*.ts
+
+# Generated application files and exports
+Applications.xlsx
+*.xlsx
+*.pdf
+*_backup.json
+Save CVs/
+Save CLs/
+ApplicationInfo/
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
