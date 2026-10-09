@@ -27,10 +27,38 @@ type DirectoryPickerWindow = Window & {
 export const canPickDirectory =
   typeof window !== "undefined" && "showDirectoryPicker" in window;
 
+const DATABASE_NAME = "resume-builder-fs";
+const DATABASE_VERSION = 2;
+const DIRECTORY_STORE = "handles";
+const LEGACY_DIRECTORY_STORE = "h";
+const ROOT_DIRECTORY_KEY = "root";
+
 const openDatabase = () =>
   new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open("resume-builder-fs", 1);
-    request.onupgradeneeded = () => request.result.createObjectStore("handles");
+    const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
+
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      const transaction = request.transaction;
+      if (!transaction) return;
+
+      const directoryStore = db.objectStoreNames.contains(DIRECTORY_STORE)
+        ? transaction.objectStore(DIRECTORY_STORE)
+        : db.createObjectStore(DIRECTORY_STORE);
+
+      // Older versions stored the selected directory in an object store named
+      // `h`. Migrate that handle once so existing users keep their selection.
+      if (db.objectStoreNames.contains(LEGACY_DIRECTORY_STORE)) {
+        const legacyStore = transaction.objectStore(LEGACY_DIRECTORY_STORE);
+        const legacyRequest = legacyStore.get(ROOT_DIRECTORY_KEY);
+        legacyRequest.onsuccess = () => {
+          if (legacyRequest.result) {
+            directoryStore.put(legacyRequest.result, ROOT_DIRECTORY_KEY);
+          }
+        };
+      }
+    };
+
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
@@ -39,7 +67,7 @@ export async function getSavedDirectory(): Promise<DirectoryHandle | undefined> 
   try {
     const db = await openDatabase();
     const handle = await new Promise<DirectoryHandle | undefined>((resolve) => {
-      const request = db.transaction("handles").objectStore("handles").get("root");
+      const request = db.transaction(DIRECTORY_STORE).objectStore(DIRECTORY_STORE).get(ROOT_DIRECTORY_KEY);
       request.onsuccess = () => resolve(request.result as DirectoryHandle | undefined);
       request.onerror = () => resolve(undefined);
     });
@@ -57,8 +85,8 @@ export async function pickDirectory(): Promise<DirectoryHandle> {
   const db = await openDatabase();
 
   await new Promise<void>((resolve, reject) => {
-    const transaction = db.transaction("handles", "readwrite");
-    transaction.objectStore("handles").put(handle, "root");
+    const transaction = db.transaction(DIRECTORY_STORE, "readwrite");
+    transaction.objectStore(DIRECTORY_STORE).put(handle, ROOT_DIRECTORY_KEY);
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error);
     transaction.onabort = () => reject(transaction.error);
