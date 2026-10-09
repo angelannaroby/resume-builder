@@ -1,6 +1,6 @@
 import { Workbook } from "exceljs";
 import type { Worksheet } from "exceljs";
-import type { DirectoryHandle } from "@/services/fileSystem";
+import { writeFile, type DirectoryHandle } from "@/services/fileSystem";
 
 export interface ApplicationInfo {
   company: string;
@@ -19,13 +19,16 @@ interface TrackerRecord {
   file: string;
 }
 
+
+export type InterviewCallStatus = "Yes" | "No";
+
 export interface TrackerApplication {
   n: number;
   company: string;
   role: string;
   location: string;
   jobLink: string;
-  interviewCall: string;
+  interviewCall: InterviewCallStatus;
   appliedOn: string;
   resumeFile: string;
   notes: string;
@@ -239,6 +242,46 @@ function toIsoDate(value: unknown, fallback: string) {
   return fallback.trim();
 }
 
+export async function updateInterviewCall(
+  dir: DirectoryHandle,
+  applicationNumber: number,
+  status: InterviewCallStatus,
+): Promise<void> {
+  const { workbook, sheet } = await loadWorkbook(dir);
+  if (!sheet) throw new Error(`${TRACKER_FILE} was not found.`);
+
+  let targetRow: number | undefined;
+  sheet.eachRow((row, index) => {
+    if (index > 1 && Number(row.getCell(1).value) === applicationNumber) {
+      targetRow = index;
+    }
+  });
+
+  if (!targetRow) {
+    throw new Error(`Application #${applicationNumber} was not found in ${TRACKER_FILE}.`);
+  }
+
+  const cell = sheet.getCell(targetRow, 6);
+  cell.value = status;
+  cell.dataValidation = {
+    type: "list",
+    allowBlank: false,
+    formulae: ['"Yes,No"'],
+    showErrorMessage: true,
+    errorTitle: "Interview Call",
+    error: "Choose Yes or No",
+  };
+
+  try {
+    const bytes = (await workbook.xlsx.writeBuffer()) as ArrayBuffer;
+    await writeFile(dir, TRACKER_FILE, bytes);
+  } catch (error) {
+    throw new Error(
+      `Could not update ${TRACKER_FILE}. Close it in Excel and retry. ${(error as Error).message}`,
+    );
+  }
+}
+
 export async function readApplications(
   dir: DirectoryHandle,
 ): Promise<TrackerApplication[]> {
@@ -264,7 +307,7 @@ export async function readApplications(
       role: row.getCell(3).text.trim(),
       location: row.getCell(4).text.trim(),
       jobLink,
-      interviewCall: row.getCell(6).text.trim(),
+      interviewCall: row.getCell(6).text.trim().toLowerCase() === "yes" ? "Yes" : "No",
       appliedOn: toIsoDate(row.getCell(7).value, row.getCell(7).text),
       resumeFile: row.getCell(8).text.trim(),
       notes: row.getCell(9).text.trim(),

@@ -1,7 +1,7 @@
 import { Workbook } from 'exceljs'
 import { expect, it, vi } from 'vitest'
 import { requireDirectory, SAVE_FOLDERS, writeFile } from '@/services/fileSystem'
-import { addApplication, countApplications, readApplications } from '@/features/application-tracker/applicationTracker'
+import { addApplication, countApplications, readApplications, updateInterviewCall } from '@/features/application-tracker/applicationTracker'
 it('uses the requested folder names',()=>{expect(SAVE_FOLDERS).toEqual({cv:'Save CVs',cl:'Save CLs',info:'ApplicationInfo'})})
 it('reuses the selected parent and requests access only when needed',async()=>{
  const root={queryPermission:vi.fn(async()=> 'granted'),requestPermission:vi.fn()}
@@ -52,4 +52,21 @@ it('reads tracker rows for the in-app Applications view without changing the wor
 it('returns an empty Applications view when the tracker does not exist',async()=>{
  const missing={getFileHandle:async()=>{throw Object.assign(new Error(),{name:'NotFoundError'})}}
  expect(await readApplications(missing)).toEqual([])
+})
+
+it('updates only the Interview Call value in the existing tracker workbook', async()=>{
+ const wb=new Workbook(),ws=wb.addWorksheet('Applications')
+ ws.addRow(['No.','Company','Role','Location','Job Link','Interview Call','Applied On','Resume File','Notes'])
+ ws.addRow([7,'Company A','Frontend','Berlin','', 'No',new Date('2026-10-09T00:00:00Z'),'a.pdf','Keep this note'])
+ ws.addRow([8,'Company B','Engineer','Munich','', 'No',new Date('2026-10-08T00:00:00Z'),'b.pdf','Other row'])
+ let bytes=await wb.xlsx.writeBuffer()
+ const writable={write:vi.fn(async(data:ArrayBuffer)=>{bytes=data}),close:vi.fn(async()=>{}),abort:vi.fn(async()=>{})}
+ const root:any={getFileHandle:vi.fn(async(_name:string,options?:{create?:boolean})=> options?.create ? {createWritable:async()=>writable} : {getFile:async()=>({arrayBuffer:async()=>bytes})})}
+ await updateInterviewCall(root,7,'Yes')
+ const check=new Workbook();await check.xlsx.load(bytes)
+ const sheet=check.getWorksheet('Applications')!
+ expect(sheet.getCell('F2').text).toBe('Yes')
+ expect(sheet.getCell('I2').text).toBe('Keep this note')
+ expect(sheet.getCell('F3').text).toBe('No')
+ expect(writable.close).toHaveBeenCalledOnce()
 })
